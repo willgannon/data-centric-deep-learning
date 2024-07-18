@@ -46,6 +46,9 @@ def build_regression_test(system, loader):
   labels (torch.LongTensor): tensor of labels
     shape: 100
   """
+  '''batch_loss = F.cross_entropy(logits, labels, reduction='none') 
+    batch_loss = ## convert to floats
+    batch_is_correct = [1 for each time preds[i] == logits[i], 0 for when it doesn't]'''
   losses = []
   is_correct = []
 
@@ -99,7 +102,11 @@ def build_regression_test(system, loader):
     # batch_is_correct: List[int] (not a torch.Tensor!)
     #   List of integers - 1 if the model got that element correct 
     #                    - 0 if the model got that element incorrect
-    pass # remove me
+    
+    batch_loss = F.cross_entropy(logits, labels, reduction='none') 
+    batch_loss = batch_loss.cpu().numpy().tolist() ## cf with batch_loss.loss() from lecture again
+    batch_is_correct = (preds == labels).int().tolist()
+                  
     # ================================
     losses.extend(batch_loss)
     is_correct.extend(batch_is_correct)
