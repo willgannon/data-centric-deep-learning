@@ -13,7 +13,6 @@ def random_sampling(pred_probs: torch.Tensor, budget : int = 1000) -> List[int]:
   '''
   fix_random_seed(42)
   
-  indices = []
   # ================================
   # FILL ME OUT
   # Randomly pick a 1000 examples to label. This serves as a baseline.
@@ -21,6 +20,9 @@ def random_sampling(pred_probs: torch.Tensor, budget : int = 1000) -> List[int]:
   # HINT: when you randomly sample, do not choose duplicates.
   # HINT: please ensure indices is a list of integers
   # ================================
+
+  indices = np.random.choice(len(pred_probs), budget, replace=False).tolist()
+  
   return indices
 
 def uncertainty_sampling(pred_probs: torch.Tensor, budget : int = 1000) -> List[int]:
@@ -39,6 +41,10 @@ def uncertainty_sampling(pred_probs: torch.Tensor, budget : int = 1000) -> List[
   # Take the first 1000.
   # HINT: please ensure indices is a list of integers
   # ================================
+  confidence = torch.max(pred_probs, dim=1)[0]
+
+  indices = torch.argsort(confidence)[:budget].tolist()
+
   return indices
 
 def margin_sampling(pred_probs: torch.Tensor, budget : int = 1000) -> List[int]:
@@ -53,6 +59,10 @@ def margin_sampling(pred_probs: torch.Tensor, budget : int = 1000) -> List[int]:
   # Sort indices by the different in predicted probabilities in the top two classes per example.
   # Take the first 1000.
   # ================================
+  sorted_probs, _ = torch.sort(pred_probs, descending=True)
+  margin = sorted_probs[:, 0] - sorted_probs[:, 1]
+  indices = torch.argsort(margin)[:budget].tolist()
+
   return indices
 
 def entropy_sampling(pred_probs: torch.Tensor, budget : int = 1000) -> List[int]:
@@ -71,4 +81,10 @@ def entropy_sampling(pred_probs: torch.Tensor, budget : int = 1000) -> List[int]
   # Take the first 1000.
   # HINT: Add epsilon when taking a log for entropy computation
   # ================================
+  # entropy = -np.sum(pred_probs * np.log(pred_probs + epsilon))
+
+  entropy = -torch.sum(pred_probs * torch.log(pred_probs + epsilon), dim=1) ## GPT converted  to torch
+
+  indices = torch.argsort(entropy, descending=True)[:budget].tolist()
+
   return indices
